@@ -1,0 +1,170 @@
+local Library = {}
+local TweenService = game:GetService("TweenService")
+
+function Library.Create()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.ResetOnSpawn = false
+    
+    local MainWindow = Instance.new("Frame")
+    MainWindow.Size = UDim2.new(0, 300, 0, 40)
+    MainWindow.Position = UDim2.new(0.5, -150, 0.5, -20)
+    MainWindow.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainWindow.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    MainWindow.Parent = ScreenGui
+    
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Size = UDim2.new(1, 0, 0, 30)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TitleBar.Parent = MainWindow
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0, 100, 1, 0)
+    Title.Text = "Library"
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.BackgroundTransparency = 1
+    Title.Parent = TitleBar
+    
+    local ElementsContainer = Instance.new("Frame")
+    ElementsContainer.Size = UDim2.new(1, -110, 1, 0)
+    ElementsContainer.Position = UDim2.new(0, 110, 0, 0)
+    ElementsContainer.BackgroundTransparency = 1
+    ElementsContainer.Parent = TitleBar
+    
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+    UIListLayout.Padding = UDim.new(0, 5)
+    UIListLayout.Parent = ElementsContainer
+    
+    local DropdownButton = Instance.new("TextButton")
+    DropdownButton.Size = UDim2.new(0, 30, 1, 0)
+    DropdownButton.Position = UDim2.new(1, -30, 0, 0)
+    DropdownButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    DropdownButton.Text = "^"
+    DropdownButton.TextColor3 = Color3.new(1, 1, 1)
+    DropdownButton.Parent = TitleBar
+    
+    local DropdownFrame = Instance.new("Frame")
+    DropdownFrame.Size = UDim2.new(1, 0, 0, 0)
+    DropdownFrame.Position = UDim2.new(0, 0, 1, 0)
+    DropdownFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    DropdownFrame.ClipsDescendants = true
+    DropdownFrame.Visible = false
+    DropdownFrame.Parent = MainWindow
+    
+    local DropdownContent = Instance.new("Frame")
+    DropdownContent.Size = UDim2.new(1, 0, 0, 0)
+    DropdownContent.BackgroundTransparency = 1
+    DropdownContent.Parent = DropdownFrame
+    
+    local DropdownOpen = false
+    local IsAnimating = false
+
+    local function ToggleDropdown()
+        if IsAnimating then return end
+        IsAnimating = true
+        
+        DropdownOpen = not DropdownOpen
+        DropdownFrame.Visible = true
+        
+        local CaretTween = TweenService:Create(
+            DropdownButton,
+            TweenInfo.new(0.3),
+            {TextColor3 = DropdownOpen and Color3.new(0.8, 0.8, 0.8) or Color3.new(1, 1, 1)}
+        )
+        
+        local RotationTween = TweenService:Create(
+            DropdownButton,
+            TweenInfo.new(0.3),
+            {Rotation = DropdownOpen and 180 or 0}
+        )
+        
+        local FrameTween = TweenService:Create(
+            DropdownFrame,
+            TweenInfo.new(0.3),
+            {Size = DropdownOpen and UDim2.new(1, 0, 0, 200) or UDim2.new(1, 0, 0, 0)}
+        )
+        
+        CaretTween:Play()
+        RotationTween:Play()
+        FrameTween:Play()
+        
+        FrameTween.Completed:Connect(function()
+            IsAnimating = false
+            if not DropdownOpen then
+                DropdownFrame.Visible = false
+            end
+        end)
+    end
+
+    DropdownButton.MouseButton1Click:Connect(ToggleDropdown)
+
+    -- Fungsi edit title
+    local function SetTitle(newText)
+        Title.Text = newText
+    end
+
+    function Library:CreateButton(props)
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(0, 70, 1, -5)
+        Button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        Button.Text = props.Text or "Button"
+        Button.TextColor3 = Color3.new(1, 1, 1)
+        Button.Parent = ElementsContainer
+        
+        if props.Callback then
+            Button.MouseButton1Click:Connect(props.Callback)
+        end
+        return Button
+    end
+
+    function Library:CreateToggle(props)
+        local Toggle = Instance.new("TextButton")
+        Toggle.Size = UDim2.new(0, 70, 1, -5)
+        Toggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        Toggle.Text = props.Text or "Toggle"
+        Toggle.TextColor3 = Color3.new(1, 1, 1)
+        Toggle.Parent = ElementsContainer
+        
+        local State = false
+        local function Update()
+            Toggle.BackgroundColor3 = State and Color3.fromRGB(80, 120, 80) or Color3.fromRGB(60, 60, 60)
+        end
+        
+        Toggle.MouseButton1Click:Connect(function()
+            State = not State
+            Update()
+            if props.Callback then
+                props.Callback(State)
+            end
+        end)
+        return Toggle
+    end
+
+    function Library:AddDropdownItem(item)
+        local ItemButton = Instance.new("TextButton")
+        ItemButton.Size = UDim2.new(1, -10, 0, 30)
+        ItemButton.Position = UDim2.new(0, 5, 0, #DropdownContent:GetChildren() * 35)
+        ItemButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        ItemButton.Text = item.Text
+        ItemButton.TextColor3 = Color3.new(1, 1, 1)
+        ItemButton.Parent = DropdownContent
+        
+        DropdownContent.Size = UDim2.new(1, 0, 0, #DropdownContent:GetChildren() * 35 + 5)
+        
+        ItemButton.MouseButton1Click:Connect(function()
+            if item.Callback then
+                item.Callback()
+            end
+        end)
+    end
+
+    return {
+        ScreenGui = ScreenGui,
+        CreateButton = Library.CreateButton,
+        CreateToggle = Library.CreateToggle,
+        AddDropdownItem = Library.AddDropdownItem,
+        SetTitle = SetTitle  -- Fungsi edit title ditambahkan disini
+    }
+end
+
+return Library
