@@ -24,7 +24,18 @@ A lightweight GUI library for Roblox with a modern design, animations, and custo
 ### **API Reference**  
 
 #### `Library.Create() -> GUI`  
-Initializes the GUI window.  
+Initializes the GUI window. 
+
+### **`SetTitle(text: string)`**  
+Updates the title bar text.  
+
+**Parameters:**  
+- `text` (string): New title text  
+
+**Example:**  
+```lua
+MyGUI.SetTitle("New Title")
+```
 
 **Returns:**  
 - A table with:  
